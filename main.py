@@ -69,32 +69,32 @@ try:
 
 
     @dp.callback_query_handler(text=const.day)
-    async def send_random_value(call: types.CallbackQuery):
+    async def history_day(call: types.CallbackQuery):
         await call.message.answer("rabit day")
 
 
     @dp.callback_query_handler(text=const.week)
-    async def send_random_value(call: types.CallbackQuery):
+    async def history_week(call: types.CallbackQuery):
         await call.message.answer("rabit week")
 
 
     @dp.callback_query_handler(text=const.month)
-    async def send_random_value(call: types.CallbackQuery):
-        await call.message.answer("rabit week")
+    async def history_month(call: types.CallbackQuery):
+        await call.message.answer("rabit month")
 
 
     @dp.callback_query_handler(text=const.year)
-    async def send_random_value(call: types.CallbackQuery):
+    async def history_year(call: types.CallbackQuery):
         await call.message.answer("rabit year")
 
 
     @dp.message_handler(text='Назад')
-    async def process_start_command(message: types.Message):
+    async def back_in_main(message: types.Message):
         await message.answer("Вы в главном меню", reply_markup=GUI.main_kb)
 
 
     @dp.message_handler(text='Связь с разработчиком')
-    async def process_start_command(message: types.Message):
+    async def contact_developer(message: types.Message):
         await message.answer('@Sad_prod')
 except:
     print('Exept in main.py')
