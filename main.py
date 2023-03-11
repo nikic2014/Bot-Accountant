@@ -11,13 +11,14 @@ dp = Dispatcher(bot)
 try:
     @dp.message_handler(commands=['start'])
     async def start(message: types.Message):
-        await message.answer("Добро пожаловать!\n"
+        await message.answer("<em>Добро пожаловать!\n"
                              "Данный бот создан для вашего учета расходов.\n"
                              "Вы можете добавлять свои сведения о "
                              "расходах и доходах.\n"
                              "Также вы можете запрашивать "
-                             "статистику и историю операций.",
-                             reply_markup=GUI.main_kb)
+                             "статистику и историю операций.</em>",
+                             reply_markup=GUI.main_kb,
+                             parse_mode="HTML")
 
         # TODO: добавление пользователя в базу данных
 
