@@ -1,0 +1,28 @@
+DROP TABLE Expenses;
+DROP TABLE Income;
+DROP TABLE Users;
+
+CREATE TABLE Users(
+	user_id integer PRIMARY KEY,
+	chat_id integer NOT NULL
+);
+
+CREATE TABLE Expenses(
+	fk_user_id integer NOT NULL,
+	data_expenses date,
+	amount integer,
+	
+	FOREIGN KEY (fk_user_id) REFERENCES Users(user_id)
+);
+
+CREATE TABLE Income(
+	fk_user_id integer NOT NULL,
+	data_income date,
+	amount integer,
+	
+	FOREIGN KEY (fk_user_id) REFERENCES Users(user_id)
+);
+
+-- INSERT INTO Users VALUES (2323, 165);
+
+select * from users
