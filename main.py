@@ -25,6 +25,10 @@ class UsersState(StatesGroup):
     Add_Income = State()
     Input_Income = State()
 
+    History = State()
+    History_Income = State()
+    History_Expenses = State()
+
 
 date_global = ""
 
@@ -83,21 +87,30 @@ try:
 
 
     @dp.message_handler(text='История')
-    async def History(message: types.Message):
+    async def history(message: types.Message):
         await message.answer("Выберите категорию",
                              reply_markup=GUI.history_kb)
 
+        await UsersState.History.set()
+        print("Bot в состоянии истории")
 
-    @dp.message_handler(text='История доходов')
-    async def History_Income(message: types.Message):
+
+    @dp.message_handler(text='История доходов', state=UsersState.History)
+    async def history_income(message: types.Message):
         await message.answer("Выберите категорию",
                              reply_markup=GUI.time_kb)
 
+        await UsersState.History_Income.set()
+        print("Bot в состоянии истории доходов")
 
-    @dp.message_handler(text='История расходов')
-    async def History_Expenses(message: types.Message):
+
+    @dp.message_handler(text='История расходов', state=UsersState.History)
+    async def history_expenses(message: types.Message):
         await message.answer('Выберите категорию',
                              reply_markup=GUI.time_kb)
+
+        await UsersState.History_Expenses.set()
+        print("Bot в состоянии истории расходов")
 
 
     @dp.message_handler(text='Добавить доходы')
@@ -127,7 +140,8 @@ try:
 
     @dp.callback_query_handler(simple_cal_callback.filter(),
                                state=(
-                               UsersState.Add_Income, UsersState.Add_Expenses))
+                                       UsersState.Add_Income,
+                                       UsersState.Add_Expenses))
     async def process_simple_calendar(callback_query: types.CallbackQuery,
                                       callback_data: dict):
         selected, date = await SimpleCalendar().process_selection(
@@ -184,14 +198,17 @@ try:
         try:
             with conaction.cursor() as cursor:
                 in_ex = ""
+                in_ex_date = ""
 
                 if (current_state == "UsersState:Input_Income"):
                     in_ex = 'Income'
+                    in_ex_date = 'data_income'
                 else:
                     in_ex = 'Expenses'
+                    in_ex_date = 'data_expenses'
 
                 cursor.execute(
-                    f"INSERT INTO {in_ex} (fk_user_id, data_expenses, amount) "
+                    f"INSERT INTO {in_ex} (fk_user_id, {in_ex_date}, amount) "
                     f"VALUES {user_id, date_global, amount}"
                 )
                 conaction.commit()
@@ -205,25 +222,73 @@ try:
                                  parse_mode="HTML")
 
 
-    @dp.callback_query_handler(text=const.day)
-    async def history_day(call: types.CallbackQuery):
-        await call.message.answer("rabit day")
+    @dp.callback_query_handler(text=(const.day,
+                                     const.week,
+                                     const.month,
+                                     const.year),
+                               state=(UsersState.History_Income,
+                                      UsersState.History_Expenses))
+    async def history_time(call: types.CallbackQuery, state: FSMContext, ):
+
+        current_state = await state.get_state()
+        user_id = call.from_user.id
+        date_start = str(datetime.date.today())
+        date_end = ""
+
+        if (call.data == const.day):
+            date_end = str(datetime.date.today())
+        elif (call.data == const.week):
+            date_end = str(datetime.date.today() - datetime.timedelta(days=7))
+        elif (call.data == const.month):
+            date_end = str(datetime.date.today() - datetime.timedelta(days=30))
+        elif (call.data == const.year):
+            date_end = str(datetime.date.today() - datetime.timedelta(days=365))
+
+        try:
+            with conaction.cursor() as cursor:
+                in_ex = ""
+                in_ex_date = ""
+
+                if (current_state == "UsersState:History_Income"):
+                    in_ex = 'Income'
+                    in_ex_date = 'data_income'
+                else:
+                    in_ex = 'Expenses'
+                    in_ex_date = 'data_expenses'
+
+                cursor.execute(
+                    f"select * "
+                    f"from {in_ex} "
+                    f"WHERE fk_user_id = {user_id} and "
+                    f"{in_ex_date} <= '{date_start}' and "
+                    f"{in_ex_date} >= '{date_end}';"
+                )
+                ans = cursor.fetchall()
+                if (ans == []):
+                    await call.message.answer("У вас пока нет истори "
+                                              "доходов/расходов")
+                else:
+                    await call.message.answer("Ваш запрос:")
+                    for i in ans:
+                        date_today = str(i[1]).split('-')
+                        date_today[0], date_today[2] = date_today[2], \
+                                                       date_today[0]
+                        date_today = '-'.join(date_today)
+                        amount = i[2]
+                        await call.message.answer(
+                            date_today + ": " + str(amount))
 
 
-    @dp.callback_query_handler(text=const.week)
-    async def history_week(call: types.CallbackQuery):
-        await call.message.answer("rabit week")
+        except Exception as ex_:
+            print("Error while get date history today", ex_)
+            conaction.rollback()
+        else:
+            print("История успешно выведена")
+            await UsersState.History.set()
+            print("Bot в состояние истории")
 
-
-    @dp.callback_query_handler(text=const.month)
-    async def history_month(call: types.CallbackQuery):
-        await call.message.answer("rabit month")
-
-
-    @dp.callback_query_handler(text=const.year)
-    async def history_year(call: types.CallbackQuery):
-        await call.message.answer("rabit year")
-
+            ### Функция возврата callback, чтобы кнопка потухла
+            await bot.answer_callback_query(call.id)
 
     @dp.message_handler(text='Связь с разработчиком')
     async def contact_developer(message: types.Message):

@@ -25,10 +25,10 @@ try:
 
     # создание inline меню для history
     time_kb = InlineKeyboardMarkup(row_width=1)
-    day_button = InlineKeyboardButton(const.day, callback_data='День')
-    week_button = InlineKeyboardButton(const.week, callback_data='Неделя')
-    month_button = InlineKeyboardButton(const.month, callback_data='Месяц')
-    year_button = InlineKeyboardButton(const.year, callback_data='Год')
+    day_button = InlineKeyboardButton(const.day, callback_data=const.day)
+    week_button = InlineKeyboardButton(const.week, callback_data=const.week)
+    month_button = InlineKeyboardButton(const.month, callback_data=const.month)
+    year_button = InlineKeyboardButton(const.year, callback_data=const.year)
     time_kb.add(day_button)
     time_kb.add(week_button)
     time_kb.add(month_button)
