@@ -37,10 +37,15 @@ from Expenses
 WHERE fk_user_id = 452895447 and data_expenses >= '2023-03-13' and data_expenses <= '2023-03-13';
 
 INSERT INTO users VALUES (generate_series(3, 10000), 1512);
-INSERT INTO Expenses VALUES (generate_series(1, 10000), '2023-03-19', 3421);
+INSERT INTO Expenses VALUES (generate_series(1, 10000), '2023-03-19', 321);
 
-CREATE INDEX test_index on using 'B-tree' fk_user_id;
+
+EXPLAIN select *
+from Expenses
+WHERE fk_user_id = 5000;
+
 DROP INDEX test_index;
+CREATE INDEX test_index on expenses using hash (fk_user_id);
 
 EXPLAIN select *
 from Expenses
